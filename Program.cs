@@ -8,7 +8,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalAndProd", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200", "https://tu-dominio-produccion.com") // agrega los orígenes que necesites
+            .WithOrigins("http://localhost:4200", "https://tu-dominio-produccion.com") 
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials(); 
@@ -35,7 +35,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // **Importante: el orden**
-app.UseCors("AllowLocalAndProd"); // debe ir antes de Authorization
+app.UseCors("AllowLocalAndProd"); 
 
 app.UseAuthorization();
 
