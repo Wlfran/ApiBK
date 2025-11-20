@@ -1,0 +1,17 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+*.idx
+*.log
+*.vsidx
+
+# Temp DB files VS
+*.db
+*.db-shm
+*.db-wal
+
+# Build
+bin/
+obj/
