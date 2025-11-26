@@ -60,11 +60,10 @@
             }
           },
           {
-            "name": "mes",
+            "name": "mesNombre",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
@@ -146,6 +145,106 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/SocialEjecucion/guardar-detalle": {
+      "post": {
+        "tags": [
+          "SocialEjecucion"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "IdSolicitud": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "Nit": {
+                    "type": "string"
+                  },
+                  "NombreEmpresa": {
+                    "type": "string"
+                  },
+                  "LineaServicio": {
+                    "type": "string"
+                  },
+                  "Otro": {
+                    "type": "string"
+                  },
+                  "ValorEjecutado": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "SinEjecucion": {
+                    "type": "boolean"
+                  },
+                  "CreadoPor": {
+                    "type": "string"
+                  },
+                  "Comentarios": {
+                    "type": "string"
+                  },
+                  "Adjunto": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "EstadoNuevo": {
+                    "type": "string"
+                  },
+                  "AccionNueva": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "IdSolicitud": {
+                  "style": "form"
+                },
+                "Nit": {
+                  "style": "form"
+                },
+                "NombreEmpresa": {
+                  "style": "form"
+                },
+                "LineaServicio": {
+                  "style": "form"
+                },
+                "Otro": {
+                  "style": "form"
+                },
+                "ValorEjecutado": {
+                  "style": "form"
+                },
+                "SinEjecucion": {
+                  "style": "form"
+                },
+                "CreadoPor": {
+                  "style": "form"
+                },
+                "Comentarios": {
+                  "style": "form"
+                },
+                "Adjunto": {
+                  "style": "form"
+                },
+                "EstadoNuevo": {
+                  "style": "form"
+                },
+                "AccionNueva": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Social_Module")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5dee63d1b5650d80553df1dfb9907b7989d204fb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9069b0d84b364d08d342de8a46067c65f333e622")]
 [assembly: System.Reflection.AssemblyProductAttribute("Social_Module")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Social_Module")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

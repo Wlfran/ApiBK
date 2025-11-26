@@ -20,7 +20,7 @@ namespace Social_Module.Controllers
         {
             var data = await _empresasService.GetEmpresas();
 
-            return Ok(new { data, totalRows = data.Count() });
+            return Ok(data);
         }
     }
 }

@@ -3,7 +3,7 @@
     public class EmpresasDTO
     {
         public string nit { get; set; }
-        public string nombre_empresa { get; set; }
+        public string name { get; set; }
 
     }
 }

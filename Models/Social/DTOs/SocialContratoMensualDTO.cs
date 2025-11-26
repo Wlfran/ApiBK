@@ -9,7 +9,7 @@
         public string NroContrato { get; set; }
         public string AreaEjecucion { get; set; }
         public int Anio { get; set; }
-        public string Mes { get; set; }
+        public string MesNombre { get; set; }
         public string Estado { get; set; }
     }
 }
