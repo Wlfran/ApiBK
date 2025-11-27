@@ -60,7 +60,7 @@
             }
           },
           {
-            "name": "mesNombre",
+            "name": "mes",
             "in": "query",
             "schema": {
               "type": "string"

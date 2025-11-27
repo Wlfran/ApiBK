@@ -21,7 +21,7 @@ namespace Social_Module.Controllers
             string? contrato = null,
             string? areaEjecucion = null,
             int? anio = null,
-            string? mesNombre = null,
+            string? mes = null,
             string? estado = null,
             string? excludeEstados = null,
             DateTime? fechaCreacion = null,
@@ -31,7 +31,7 @@ namespace Social_Module.Controllers
             int take = 10)
         {
             var data = await _socialService.GetSolicitudesAsync(
-                filter, empresa, contrato, areaEjecucion, anio, mesNombre, estado, excludeEstados, fechaCreacion,
+                filter, empresa, contrato, areaEjecucion, anio, mes, estado, excludeEstados, fechaCreacion,
                 sortBy, sortDirection, skip, take);
 
             return Ok(new { data, totalRows = data.Count() });

@@ -43,7 +43,7 @@
         "IsRequired": false
       },
       {
-        "Name": "mesNombre",
+        "Name": "mes",
         "Type": "System.String",
         "IsRequired": false
       },
