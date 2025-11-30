@@ -1,3 +1,4 @@
+using Social_Module.Services.Interface;
 using Social_Module.Services.Social;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<SocialService>();
 builder.Services.AddScoped<EmpresasService>();
+builder.Services.AddScoped<ISocialEjecucionService, SocialEjecucionService>();
+
 
 
 var app = builder.Build();

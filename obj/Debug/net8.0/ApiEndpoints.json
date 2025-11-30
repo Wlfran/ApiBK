@@ -103,6 +103,22 @@
   },
   {
     "ContainingType": "Social_Module.Controllers.SocialEjecucionController",
+    "Method": "GuardarBorrador",
+    "RelativePath": "api/SocialEjecucion/guardar-borrador",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Social_Module.Models.Social.DTOs.BorradorEjecucionDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Social_Module.Controllers.SocialEjecucionController",
     "Method": "GuardarDetalle",
     "RelativePath": "api/SocialEjecucion/guardar-detalle",
     "HttpMethod": "POST",
@@ -168,6 +184,27 @@
         "Name": "AccionNueva",
         "Type": "System.String",
         "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Social_Module.Controllers.SocialEjecucionController",
+    "Method": "ObtenerBorrador",
+    "RelativePath": "api/SocialEjecucion/obtener-borrador/{idSolicitud}/{usuario}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idSolicitud",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "usuario",
+        "Type": "System.String",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []

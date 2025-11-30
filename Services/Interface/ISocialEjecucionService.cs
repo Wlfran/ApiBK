@@ -7,6 +7,8 @@ namespace Social_Module.Services.Interface
         Task<bool> GuardarDetalleAsync(DetalleEjecucionCreateDto dto);
         Task<bool> GuardarHistorialAsync(HistorialAccionDto dto);
         Task<bool> ActualizarEstadoSolicitudAsync(int idSolicitud, string nuevoEstado);
+        Task GuardarBorradorAsync(BorradorEjecucionDto dto);
+        Task<string?> ObtenerBorradorAsync(int idSolicitud, string usuario);
 
     }
 }

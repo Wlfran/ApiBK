@@ -100,6 +100,38 @@ namespace Social_Module.Services.Social
             await conn.ExecuteAsync(query, dto);
             return true;
         }
+
+        public async Task GuardarBorradorAsync(BorradorEjecucionDto dto)
+        {
+            using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+
+            var query = @"
+                INSERT INTO Social_BorradoresEjecucion (IdSolicitud, Usuario, JsonContenido)
+                VALUES (@IdSolicitud, @Usuario, @JsonContenido);
+            ";
+
+            await conn.ExecuteAsync(query, dto);
+        }
+
+        public async Task<string?> ObtenerBorradorAsync(int idSolicitud, string usuario)
+        {
+            using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+
+            var query = @"
+                SELECT TOP 1 JsonContenido
+                FROM Social_BorradoresEjecucion
+                WHERE IdSolicitud = @IdSolicitud AND Usuario = @Usuario
+                ORDER BY FechaGuardado DESC;
+            ";
+
+            var json = await conn.QueryFirstOrDefaultAsync<string>(query, new
+            {
+                IdSolicitud = idSolicitud,
+                Usuario = usuario
+            });
+
+            return json;
+        }
     }
 
 }

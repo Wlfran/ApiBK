@@ -251,7 +251,90 @@
           }
         }
       }
+    },
+    "/api/SocialEjecucion/guardar-borrador": {
+      "post": {
+        "tags": [
+          "SocialEjecucion"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BorradorEjecucionDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BorradorEjecucionDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BorradorEjecucionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/SocialEjecucion/obtener-borrador/{idSolicitud}/{usuario}": {
+      "get": {
+        "tags": [
+          "SocialEjecucion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "usuario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
-  "components": { }
+  "components": {
+    "schemas": {
+      "BorradorEjecucionDto": {
+        "type": "object",
+        "properties": {
+          "idSolicitud": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usuario": {
+            "type": "string",
+            "nullable": true
+          },
+          "jsonContenido": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
 }

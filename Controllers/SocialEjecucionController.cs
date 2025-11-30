@@ -39,6 +39,28 @@ namespace Social_Module.Controllers
             return Ok(new { ok = true });
         }
 
+        [HttpPost("guardar-borrador")]
+        public async Task<IActionResult> GuardarBorrador([FromBody] BorradorEjecucionDto dto)
+        {
+            try
+            {
+                await _service.GuardarBorradorAsync(dto);
+                return Ok(new { ok = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { ok = false, error = ex.Message, stack = ex.StackTrace });
+            }
+        }
+
+
+        [HttpGet("obtener-borrador/{idSolicitud:int}/{usuario}")]
+        public async Task<IActionResult> ObtenerBorrador(int idSolicitud, string usuario)
+        {
+            var json = await _service.ObtenerBorradorAsync(idSolicitud, usuario);
+            return Ok(new { json });
+        }
+
 
     }
 }
