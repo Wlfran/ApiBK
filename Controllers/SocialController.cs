@@ -28,11 +28,12 @@ namespace Social_Module.Controllers
             string? sortBy = "FechaCreacion",
             string? sortDirection = "desc",
             int skip = 0,
-            int take = 10)
+            int take = 10,
+            string? cedula = null)
         {
             var data = await _socialService.GetSolicitudesAsync(
                 filter, empresa, contrato, areaEjecucion, anio, mes, estado, excludeEstados, fechaCreacion,
-                sortBy, sortDirection, skip, take);
+                sortBy, sortDirection, skip, take, cedula);
 
             return Ok(new { data, totalRows = data.Count() });
         }

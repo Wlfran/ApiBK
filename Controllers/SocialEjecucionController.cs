@@ -61,6 +61,14 @@ namespace Social_Module.Controllers
             return Ok(new { json });
         }
 
+        [HttpGet("detalle/{idSolicitud:int}")]
+        public async Task<IActionResult> ObtenerDetalle(int idSolicitud)
+        {
+            var detalle = await _service.ObtenerDetalleAsync(idSolicitud);
+            return Ok(detalle);
+        }
+
+
 
     }
 }

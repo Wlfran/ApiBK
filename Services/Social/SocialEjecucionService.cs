@@ -1,7 +1,8 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using Social_Module.Models.Social.DTOs;
 using Social_Module.Services.Interface;
-using Dapper;
+using System.Data;
 
 namespace Social_Module.Services.Social
 {
@@ -43,13 +44,13 @@ namespace Social_Module.Services.Social
 
             var queryDetalle =
             @"
-            INSERT INTO Social_DetalleEjecucion
-            (IdSolicitud, NIT, NombreEmpresa, LineaServicio, Otro, ValorEjecutado,
-             RutaAdjunto, SinEjecucion, CreadoPor, FechaRegistro)
-            VALUES
-            (@IdSolicitud, @Nit, @NombreEmpresa, @LineaServicio, @Otro, @ValorEjecutado,
-             @RutaAdjunto, @SinEjecucion, @CreadoPor, GETDATE());
-        ";
+                INSERT INTO Social_DetalleEjecucion
+                (IdSolicitud, NIT, NombreEmpresa, LineaServicio, Otro, ValorEjecutado,
+                 RutaAdjunto, SinEjecucion, CreadoPor, FechaRegistro)
+                VALUES
+                (@IdSolicitud, @Nit, @NombreEmpresa, @LineaServicio, @Otro, @ValorEjecutado,
+                 @RutaAdjunto, @SinEjecucion, @CreadoPor, GETDATE());
+            ";
 
             await conn.ExecuteAsync(queryDetalle, new
             {
@@ -59,10 +60,16 @@ namespace Social_Module.Services.Social
                 dto.LineaServicio,
                 dto.Otro,
                 dto.ValorEjecutado,
-                RutaAdjunto = rutaAdjunto,
+                RutaAdjunto = (dto.Adjunto != null ? rutaAdjunto : null),
                 dto.SinEjecucion,
                 dto.CreadoPor
             });
+
+            await conn.ExecuteAsync(
+                "NewWebContratistas_RW_Social_NotificarAprobadoresPorEjecucion",
+                new { dto.IdSolicitud },
+                commandType: CommandType.StoredProcedure
+            );
 
             return true;
         }
@@ -132,6 +139,57 @@ namespace Social_Module.Services.Social
 
             return json;
         }
+
+        public async Task<IEnumerable<DetalleEjecucionDto>> ObtenerDetalleAsync(int idSolicitud)
+        {
+            using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+
+            var query = @"
+                            ;WITH UltimaFecha AS (
+                                SELECT 
+                                    MAX(CONVERT(DATETIME, CONVERT(CHAR(19), FechaRegistro, 120))) AS FechaReciente
+                                FROM Social_DetalleEjecucion
+                                WHERE IdSolicitud = @IdSolicitud
+                            )
+                            SELECT 
+                                d.IdDetalle,
+                                d.IdSolicitud,
+                                d.NIT AS Nit,
+                                d.NombreEmpresa,
+                                d.LineaServicio,
+                                d.Otro,
+                                d.ValorEjecutado,
+                                d.RutaAdjunto,
+                                d.SinEjecucion
+                            FROM Social_DetalleEjecucion d
+                            CROSS JOIN UltimaFecha u
+                            WHERE d.IdSolicitud = @IdSolicitud
+                              AND CONVERT(DATETIME, CONVERT(CHAR(19), d.FechaRegistro, 120)) = u.FechaReciente
+                            ORDER BY d.IdDetalle;
+                        ";
+
+            var datos = await conn.QueryAsync<DetalleEjecucionDto>(query, new { IdSolicitud = idSolicitud });
+
+            string baseUrl = _config["AppSettings:BaseUrl"] ?? "https://localhost:44392";
+
+            foreach (var item in datos)
+            {
+                if (!string.IsNullOrEmpty(item.RutaAdjunto))
+                {
+                    var encodedPath = Uri.EscapeDataString(item.RutaAdjunto)
+                        .Replace("%2F", "/");
+
+                    item.AdjuntoUrl = $"{baseUrl}{encodedPath}";
+                    item.AdjuntoNombre = Path.GetFileName(item.RutaAdjunto);
+                }
+            }
+
+            return datos;
+        }
+
+
+
+
     }
 
 }

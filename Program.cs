@@ -1,18 +1,22 @@
+using Microsoft.Extensions.FileProviders;
 using Social_Module.Services.Interface;
 using Social_Module.Services.Social;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalAndProd", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200", "https://tu-dominio-produccion.com") 
-            .AllowAnyMethod()
+            .SetIsOriginAllowed(origin =>
+            {
+                var uri = new Uri(origin);
+                return uri.Host == "localhost";
+            })
+            .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .AllowAnyHeader()
-            .AllowCredentials(); 
+            .AllowCredentials();
     });
 });
 
@@ -24,11 +28,8 @@ builder.Services.AddScoped<SocialService>();
 builder.Services.AddScoped<EmpresasService>();
 builder.Services.AddScoped<ISocialEjecucionService, SocialEjecucionService>();
 
-
-
 var app = builder.Build();
 
-// Middleware de Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -37,8 +38,22 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// **Importante: el orden**
-app.UseCors("AllowLocalAndProd"); 
+// CORS SIEMPRE antes de static + controllers
+app.UseCors("AllowLocalAndProd");
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+    ),
+    RequestPath = "",
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers["Access-Control-Allow-Origin"] = "http://localhost:4200";
+        ctx.Context.Response.Headers["Access-Control-Allow-Headers"] = "*";
+        ctx.Context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
+    }
+});
 
 app.UseAuthorization();
 

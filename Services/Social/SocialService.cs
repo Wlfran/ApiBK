@@ -26,7 +26,8 @@ namespace Social_Module.Services.Social
             string? sortBy = "FechaCreacion",
             string? sortDirection = "desc",
             int skip = 0,
-            int take = 10)
+            int take = 10,
+            string? cedula = null)
         {
             using var connection = new SqlConnection(_connectionString);
 
@@ -44,7 +45,8 @@ namespace Social_Module.Services.Social
                 SortBy = sortBy,
                 SortDirection = sortDirection,
                 Skip = skip,
-                Take = take
+                Take = take,
+                Cedula = cedula
             };
 
             return await connection.QueryAsync<SocialContratoMensualDTO>(

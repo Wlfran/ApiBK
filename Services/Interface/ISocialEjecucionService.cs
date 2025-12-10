@@ -9,6 +9,8 @@ namespace Social_Module.Services.Interface
         Task<bool> ActualizarEstadoSolicitudAsync(int idSolicitud, string nuevoEstado);
         Task GuardarBorradorAsync(BorradorEjecucionDto dto);
         Task<string?> ObtenerBorradorAsync(int idSolicitud, string usuario);
+        Task<IEnumerable<DetalleEjecucionDto>> ObtenerDetalleAsync(int idSolicitud);
+
 
     }
 }
