@@ -35,7 +35,7 @@ namespace Social_Module.Controllers
                 filter, empresa, contrato, areaEjecucion, anio, mes, estado, excludeEstados, fechaCreacion,
                 sortBy, sortDirection, skip, take, cedula);
 
-            return Ok(new { data, totalRows = data.Count() });
+            return Ok(data);
         }
 
         [HttpGet("SolicitudesById")]

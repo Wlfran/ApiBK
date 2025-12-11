@@ -1,6 +1,7 @@
-﻿using Social_Module.Models.Social.DTOs;
-using Dapper;
+﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Social_Module.Models.Social.DTOs;
+using System.Data;
 
 namespace Social_Module.Services.Social
 {
@@ -13,7 +14,7 @@ namespace Social_Module.Services.Social
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public async Task<IEnumerable<SocialContratoMensualDTO>> GetSolicitudesAsync(
+        public async Task<SocialPendientesResponse> GetSolicitudesAsync(
             string? filter = null,
             string? empresa = null,
             string? contrato = null,
@@ -31,30 +32,42 @@ namespace Social_Module.Services.Social
         {
             using var connection = new SqlConnection(_connectionString);
 
-            var parameters = new
-            {
-                Filter = filter,
-                Empresa = empresa,
-                Contrato = contrato,
-                AreaEjecucion = areaEjecucion,
-                Anio = anio,
-                Mes = Mes,
-                Estado = estado,
-                ExcludeEstados = excludeEstados, 
-                FechaCreacion = fechaCreacion,
-                SortBy = sortBy,
-                SortDirection = sortDirection,
-                Skip = skip,
-                Take = take,
-                Cedula = cedula
-            };
-
-            return await connection.QueryAsync<SocialContratoMensualDTO>(
+            using var multi = await connection.QueryMultipleAsync(
                 "sp_Social_ObtenerTodasLasSolicitudes",
-                parameters,
-                commandType: System.Data.CommandType.StoredProcedure
+                new
+                {
+                    Filter = filter,
+                    Empresa = empresa,
+                    Contrato = contrato,
+                    AreaEjecucion = areaEjecucion,
+                    Anio = anio,
+                    Mes = Mes,
+                    Estado = estado,
+                    ExcludeEstados = excludeEstados,
+                    FechaCreacion = fechaCreacion,
+                    SortBy = sortBy,
+                    SortDirection = sortDirection,
+                    Skip = skip,
+                    Take = take,
+                    Cedula = cedula
+                },
+                commandType: CommandType.StoredProcedure
             );
+
+            var data = (await multi.ReadAsync<SocialContratoMensualDTO>()).ToList();
+
+            int total = await multi.ReadFirstOrDefaultAsync<int>();
+
+            if (total == 0 && data.Count > 0)
+                total = data.Count;
+
+            return new SocialPendientesResponse
+            {
+                Data = data,
+                TotalRows = total
+            };
         }
+
 
         public async Task<IEnumerable<SocialDetalleDTO>> GetSolicitudesByIdAsync(int idSolicitudes)
         {
