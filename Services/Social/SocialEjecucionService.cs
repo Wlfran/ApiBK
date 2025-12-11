@@ -65,11 +65,24 @@ namespace Social_Module.Services.Social
                 dto.CreadoPor
             });
 
-            await conn.ExecuteAsync(
-                "NewWebContratistas_RW_Social_NotificarAprobadoresPorEjecucion",
-                new { dto.IdSolicitud },
-                commandType: CommandType.StoredProcedure
-            );
+            if (dto.EstadoNuevo?.Equals("Reportado", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                await conn.ExecuteAsync(
+                    "NewWebContratistas_RW_Social_NotificarAprobadoresPorEjecucion",
+                    new { dto.IdSolicitud },
+                    commandType: CommandType.StoredProcedure
+                );
+            }
+            else if (dto.EstadoNuevo?.Equals("Aprobado", StringComparison.OrdinalIgnoreCase) == true ||
+                     dto.EstadoNuevo?.Equals("Pendiente por reportar", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                await conn.ExecuteAsync(
+                    "NewWebContratistas_RW_Social_NotificarContratistasPorEjecucion",
+                    new { dto.IdSolicitud },
+                    commandType: CommandType.StoredProcedure
+                );
+            }
+
 
             return true;
         }
