@@ -46,10 +46,10 @@ namespace Social_Module.Services.Social
             @"
                 INSERT INTO Social_DetalleEjecucion
                 (IdSolicitud, NIT, NombreEmpresa, LineaServicio, Otro, ValorEjecutado,
-                 RutaAdjunto, SinEjecucion, CreadoPor, FechaRegistro)
+                 RutaAdjunto, SinEjecucion, CreadoPor, FechaRegistro, Localidad)
                 VALUES
                 (@IdSolicitud, @Nit, @NombreEmpresa, @LineaServicio, @Otro, @ValorEjecutado,
-                 @RutaAdjunto, @SinEjecucion, @CreadoPor, GETDATE());
+                 @RutaAdjunto, @SinEjecucion, @CreadoPor, GETDATE(), @Localidad);
             ";
 
             await conn.ExecuteAsync(queryDetalle, new
@@ -57,6 +57,7 @@ namespace Social_Module.Services.Social
                 dto.IdSolicitud,
                 dto.Nit,
                 dto.NombreEmpresa,
+                dto.Localidad,
                 dto.LineaServicio,
                 dto.Otro,
                 dto.ValorEjecutado,
@@ -65,31 +66,17 @@ namespace Social_Module.Services.Social
                 dto.CreadoPor
             });
 
-            if (dto.EstadoNuevo?.Equals("Reportado", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                await conn.ExecuteAsync(
-                    "NewWebContratistas_RW_Social_NotificarAprobadoresPorEjecucion",
-                    new { dto.IdSolicitud },
-                    commandType: CommandType.StoredProcedure
-                );
-            }
-            else if (dto.EstadoNuevo?.Equals("Aprobado", StringComparison.OrdinalIgnoreCase) == true ||
-                     dto.EstadoNuevo?.Equals("Pendiente por reportar", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                await conn.ExecuteAsync(
-                    "NewWebContratistas_RW_Social_NotificarContratistasPorEjecucion",
-                    new { dto.IdSolicitud },
-                    commandType: CommandType.StoredProcedure
-                );
-            }
-
-
             return true;
         }
 
         public async Task<bool> ActualizarEstadoSolicitudAsync(int idSolicitud, string nuevoEstado)
         {
             using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+
+            var estadoFinal =
+                nuevoEstado.Equals("Rechazado", StringComparison.OrdinalIgnoreCase)
+                ? "Pendiente por reportar"
+                : nuevoEstado;
 
             var query = @"
             UPDATE Social_Solicitudes
@@ -100,7 +87,7 @@ namespace Social_Module.Services.Social
             await conn.ExecuteAsync(query, new
             {
                 IdSolicitud = idSolicitud,
-                Estado = nuevoEstado
+                Estado = estadoFinal
             });
 
             return true;
@@ -110,16 +97,38 @@ namespace Social_Module.Services.Social
         {
             using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
 
-            var query = @"
-            INSERT INTO Social_HistorialAprobacion
-            (IdSolicitud, FechaAccion, Accion, Estado, Comentarios, EmailUsuario)
-            VALUES
-            (@IdSolicitud, GETDATE(), @Accion, @Estado, @Comentarios, @EmailUsuario);
-        ";
+            const string insertHistorial = @"
+                INSERT INTO Social_HistorialAprobacion
+                (IdSolicitud, FechaAccion, Accion, Estado, Comentarios, EmailUsuario)
+                VALUES
+                (@IdSolicitud, GETDATE(), @Accion, @Estado, @Comentarios, @EmailUsuario);
+            ";
 
-            await conn.ExecuteAsync(query, dto);
+            await conn.ExecuteAsync(insertHistorial, dto);
+
+            if (dto.Estado.Equals("Reportado", StringComparison.OrdinalIgnoreCase))
+            {
+                await conn.ExecuteAsync(
+                    "NewWebContratistas_RW_Social_NotificarAprobadoresPorEjecucion",
+                    new { dto.IdSolicitud },
+                    commandType: CommandType.StoredProcedure
+                );
+            }
+            else if (
+                dto.Estado.Equals("Aprobado", StringComparison.OrdinalIgnoreCase) ||
+                dto.Estado.Equals("Pendiente por reportar", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                await conn.ExecuteAsync(
+                    "NewWebContratistas_RW_Social_NotificarContratistasPorEjecucion",
+                    new { dto.IdSolicitud },
+                    commandType: CommandType.StoredProcedure
+                );
+            }
+
             return true;
         }
+
 
         public async Task GuardarBorradorAsync(BorradorEjecucionDto dto)
         {

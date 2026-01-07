@@ -25,19 +25,21 @@ namespace Social_Module.Controllers
 
             await _service.GuardarDetalleAsync(dto);
 
-            await _service.GuardarHistorialAsync(new HistorialAccionDto
-            {
-                IdSolicitud = dto.IdSolicitud,
-                Accion = dto.AccionNueva ?? dto.EstadoNuevo,
-                Estado = dto.EstadoNuevo,
-                Comentarios = dto.Comentarios ?? "",
-                EmailUsuario = dto.CreadoPor
-            });
+            return Ok(new { ok = true });
+        }
 
-            await _service.ActualizarEstadoSolicitudAsync(dto.IdSolicitud, dto.EstadoNuevo);
+        [HttpPost("guardar-historial")]
+        public async Task<IActionResult> GuardarHistorial([FromBody] HistorialAccionDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            await _service.GuardarHistorialAsync(dto);
+            await _service.ActualizarEstadoSolicitudAsync(dto.IdSolicitud, dto.Estado);
 
             return Ok(new { ok = true });
         }
+
 
         [HttpPost("guardar-borrador")]
         public async Task<IActionResult> GuardarBorrador([FromBody] BorradorEjecucionDto dto)
@@ -65,8 +67,21 @@ namespace Social_Module.Controllers
         public async Task<IActionResult> ObtenerDetalle(int idSolicitud)
         {
             var detalle = await _service.ObtenerDetalleAsync(idSolicitud);
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var item in detalle)
+            {
+                if (!string.IsNullOrEmpty(item.RutaAdjunto))
+                {
+                    item.AdjuntoUrl = $"{baseUrl}{item.RutaAdjunto}";
+                    item.AdjuntoNombre = Path.GetFileName(item.RutaAdjunto);
+                }
+            }
+
             return Ok(detalle);
         }
+
 
 
 
