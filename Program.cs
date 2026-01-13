@@ -38,7 +38,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// CORS SIEMPRE antes de static + controllers
 app.UseCors("AllowLocalAndProd");
 
 app.UseStaticFiles(new StaticFileOptions

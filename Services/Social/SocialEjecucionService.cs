@@ -116,6 +116,7 @@ namespace Social_Module.Services.Social
             }
             else if (
                 dto.Estado.Equals("Aprobado", StringComparison.OrdinalIgnoreCase) ||
+                dto.Estado.Equals("Rechazado", StringComparison.OrdinalIgnoreCase) ||
                 dto.Estado.Equals("Pendiente por reportar", StringComparison.OrdinalIgnoreCase)
             )
             {
