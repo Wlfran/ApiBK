@@ -28,7 +28,7 @@ namespace Social_Module.Services.Social
                 var basePath = _env.WebRootPath ??
                     Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
 
-                var folder = Path.Combine(basePath, "adjuntos", "social");
+                var folder = Path.Combine(basePath);
                 Directory.CreateDirectory(folder);
 
                 var fileName = $"{Guid.NewGuid()}_{dto.Adjunto.FileName}";
@@ -39,7 +39,7 @@ namespace Social_Module.Services.Social
                     await dto.Adjunto.CopyToAsync(stream);
                 }
 
-                rutaAdjunto = $"/adjuntos/social/{fileName}";
+                rutaAdjunto = fileName;
             }
 
             var queryDetalle =
@@ -183,9 +183,12 @@ namespace Social_Module.Services.Social
                                 d.Otro,
                                 d.ValorEjecutado,
                                 d.RutaAdjunto,
-                                d.SinEjecucion
+                                d.SinEjecucion,
+                                s.EsObligatorio,
+                                d.Localidad
                             FROM Social_DetalleEjecucion d
                             CROSS JOIN UltimaFecha u
+                            INNER JOIN Social_Solicitudes s ON s.IdSolicitud = d.IdSolicitud
                             WHERE d.IdSolicitud = @IdSolicitud
                               AND CONVERT(DATETIME, CONVERT(CHAR(19), d.FechaRegistro, 120)) = u.FechaReciente
                             ORDER BY d.IdDetalle;
@@ -193,17 +196,17 @@ namespace Social_Module.Services.Social
 
             var datos = await conn.QueryAsync<DetalleEjecucionDto>(query, new { IdSolicitud = idSolicitud });
 
-            string baseUrl = _config["AppSettings:BaseUrl"] ?? "https://localhost:44392";
+            string docsPublicUrl = _config["AppSettings:DocsPublicUrl"];
 
             foreach (var item in datos)
             {
-                if (!string.IsNullOrEmpty(item.RutaAdjunto))
+                if (!string.IsNullOrWhiteSpace(item.RutaAdjunto))
                 {
-                    var encodedPath = Uri.EscapeDataString(item.RutaAdjunto)
-                        .Replace("%2F", "/");
+                    var fileName = Path.GetFileName(item.RutaAdjunto);
 
-                    item.AdjuntoUrl = $"{baseUrl}{encodedPath}";
-                    item.AdjuntoNombre = Path.GetFileName(item.RutaAdjunto);
+                    item.AdjuntoNombre = fileName;
+                    item.AdjuntoUrl =
+                        $"{docsPublicUrl}/{Uri.EscapeDataString(fileName)}";
                 }
             }
 

@@ -67,20 +67,9 @@ namespace Social_Module.Controllers
         public async Task<IActionResult> ObtenerDetalle(int idSolicitud)
         {
             var detalle = await _service.ObtenerDetalleAsync(idSolicitud);
-
-            var baseUrl = $"{Request.Scheme}://{Request.Host}";
-
-            foreach (var item in detalle)
-            {
-                if (!string.IsNullOrEmpty(item.RutaAdjunto))
-                {
-                    item.AdjuntoUrl = $"{baseUrl}{item.RutaAdjunto}";
-                    item.AdjuntoNombre = Path.GetFileName(item.RutaAdjunto);
-                }
-            }
-
             return Ok(detalle);
         }
+
 
 
 
