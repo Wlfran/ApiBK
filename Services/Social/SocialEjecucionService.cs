@@ -34,17 +34,20 @@ namespace Social_Module.Services.Social
 
                 var extension = Path.GetExtension(dto.Adjunto.FileName);
 
-                var existentes = Directory
-                    .GetFiles(basePath, "adjuntoSocial-*")
+                var ultimoConsecutivo = Directory
+                    .GetFiles(basePath, "AdjuntoSocial-*")
                     .Select(f => Path.GetFileNameWithoutExtension(f))
-                    .Select(name => name.Replace("adjuntoSocial-", ""))
-                    .Select(n => int.TryParse(n, out var x) ? x : 0)
+                    .Select(name => name.Split('-'))
+                    .Where(parts => parts.Length >= 2 && int.TryParse(parts[1], out _))
+                    .Select(parts => int.Parse(parts[1]))
                     .DefaultIfEmpty(0)
                     .Max();
 
-                var siguiente = existentes + 1;
+                var siguiente = ultimoConsecutivo + 1;
 
-                var fileName = $"adjuntoSocial-{siguiente}{extension}";
+                var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmssfff");
+
+                var fileName = $"AdjuntoSocial-{siguiente}-{timestamp}{extension}";
                 var filePath = Path.Combine(basePath, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -54,6 +57,7 @@ namespace Social_Module.Services.Social
 
                 rutaAdjunto = fileName;
             }
+
 
             var queryDetalle =
             @"
