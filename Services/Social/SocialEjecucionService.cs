@@ -25,14 +25,27 @@ namespace Social_Module.Services.Social
 
             if (dto.Adjunto != null)
             {
-                var basePath = _env.WebRootPath ??
-                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var basePath = _config["AppSettings:BaseUrl"];
 
-                var folder = Path.Combine(basePath);
-                Directory.CreateDirectory(folder);
+                if (string.IsNullOrWhiteSpace(basePath))
+                    throw new Exception("BaseUrl no está configurado en appsettings.json");
 
-                var fileName = $"{Guid.NewGuid()}_{dto.Adjunto.FileName}";
-                var filePath = Path.Combine(folder, fileName);
+                Directory.CreateDirectory(basePath);
+
+                var extension = Path.GetExtension(dto.Adjunto.FileName);
+
+                var existentes = Directory
+                    .GetFiles(basePath, "adjuntoSocial-*")
+                    .Select(f => Path.GetFileNameWithoutExtension(f))
+                    .Select(name => name.Replace("adjuntoSocial-", ""))
+                    .Select(n => int.TryParse(n, out var x) ? x : 0)
+                    .DefaultIfEmpty(0)
+                    .Max();
+
+                var siguiente = existentes + 1;
+
+                var fileName = $"adjuntoSocial-{siguiente}{extension}";
+                var filePath = Path.Combine(basePath, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
