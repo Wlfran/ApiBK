@@ -12,9 +12,9 @@
         public string? RutaAdjunto { get; set; }
         public bool SinEjecucion { get; set; }
         public bool EsObligatorio { get; set; }
-        public string Localidad { get; set; }
-
         public string? AdjuntoUrl { get; set; }
         public string? AdjuntoNombre { get; set; }
+        public DateTime? FechaUltimaFactura { get; set; }
+        public DateTime? UltimoPagoRealizado { get; set; }
     }
 }

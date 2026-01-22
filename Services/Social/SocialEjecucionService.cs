@@ -60,24 +60,47 @@ namespace Social_Module.Services.Social
 
 
             var queryDetalle =
-            @"
-                INSERT INTO Social_DetalleEjecucion
-                (IdSolicitud, NIT, NombreEmpresa, LineaServicio, Otro, ValorEjecutado,
-                 RutaAdjunto, SinEjecucion, CreadoPor, FechaRegistro, Localidad)
-                VALUES
-                (@IdSolicitud, @Nit, @NombreEmpresa, @LineaServicio, @Otro, @ValorEjecutado,
-                 @RutaAdjunto, @SinEjecucion, @CreadoPor, GETDATE(), @Localidad);
-            ";
+                    @"
+                    INSERT INTO Social_DetalleEjecucion
+                    (
+                        IdSolicitud,
+                        NIT,
+                        NombreEmpresa,
+                        Otro,
+                        ValorEjecutado,
+                        FechaUltimaFactura,
+                        UltimoPagoRealizado,
+                        RutaAdjunto,
+                        SinEjecucion,
+                        CreadoPor,
+                        FechaRegistro
+                    )
+                    VALUES
+                    (
+                        @IdSolicitud,
+                        @Nit,
+                        @NombreEmpresa,
+                        @Otro,
+                        @ValorEjecutado,
+                        @FechaUltimaFactura,
+                        @UltimoPagoRealizado,
+                        @RutaAdjunto,
+                        @SinEjecucion,
+                        @CreadoPor,
+                        GETDATE()
+                    );
+                    ";
 
             await conn.ExecuteAsync(queryDetalle, new
             {
                 dto.IdSolicitud,
                 dto.Nit,
                 dto.NombreEmpresa,
-                dto.Localidad,
                 dto.LineaServicio,
                 dto.Otro,
                 dto.ValorEjecutado,
+                FechaUltimaFactura = dto.FechaUltimaFactura,
+                UltimoPagoRealizado = dto.UltimoPagoRealizado,
                 RutaAdjunto = (dto.Adjunto != null ? rutaAdjunto : null),
                 dto.SinEjecucion,
                 dto.CreadoPor
@@ -202,7 +225,8 @@ namespace Social_Module.Services.Social
                                 d.RutaAdjunto,
                                 d.SinEjecucion,
                                 s.EsObligatorio,
-                                d.Localidad
+                                d.FechaUltimaFactura,
+                                d.UltimoPagoRealizado
                             FROM Social_DetalleEjecucion d
                             CROSS JOIN UltimaFecha u
                             INNER JOIN Social_Solicitudes s ON s.IdSolicitud = d.IdSolicitud
