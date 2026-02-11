@@ -19,9 +19,12 @@ namespace Social_Module.Services.Social
 
         public async Task<bool> GuardarDetalleAsync(DetalleEjecucionCreateDto dto)
         {
+
             using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
 
-            string rutaAdjunto = null;
+            using var transaction = conn.BeginTransaction();
+
+            string rutaAdjunto = dto.RutaAdjunto;
 
             if (dto.Adjunto != null)
             {
@@ -58,6 +61,21 @@ namespace Social_Module.Services.Social
                 rutaAdjunto = fileName;
             }
 
+            if (dto.Adjunto == null && string.IsNullOrWhiteSpace(dto.RutaAdjunto))
+            {
+                rutaAdjunto = null;
+            }
+
+            const string deleteQuery = @"
+                DELETE FROM Social_DetalleEjecucion
+                WHERE IdSolicitud = @IdSolicitud;
+            ";
+
+            await conn.ExecuteAsync(
+                deleteQuery,
+                new { dto.IdSolicitud },
+                transaction
+            );
 
             var queryDetalle =
                     @"
@@ -103,7 +121,7 @@ namespace Social_Module.Services.Social
                 dto.ValorEjecutado,
                 FechaUltimaFactura = dto.FechaUltimaFactura,
                 UltimoPagoRealizado = dto.UltimoPagoRealizado,
-                RutaAdjunto = (dto.Adjunto != null ? rutaAdjunto : null),
+                RutaAdjunto = rutaAdjunto,
                 dto.SinEjecucion,
                 dto.CreadoPor
             });
