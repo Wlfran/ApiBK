@@ -18,12 +18,25 @@ namespace Social_Module.Controllers
         }
 
         [HttpPost("guardar-detalle")]
-        public async Task<IActionResult> GuardarDetalle([FromForm] DetalleEjecucionCreateDto dto)
+        public async Task<IActionResult> GuardarDetalle(
+            [FromForm] DetalleEjecucionCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             await _service.GuardarDetalleAsync(dto);
+
+            return Ok(new { ok = true });
+        }
+
+        [HttpPost("guardar-detalle-bulk")]
+        public async Task<IActionResult> GuardarDetalleBulk(
+            [FromForm] DetalleEjecucionBulkDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            await _service.GuardarDetalleBulkAsync(dto);
 
             return Ok(new { ok = true });
         }

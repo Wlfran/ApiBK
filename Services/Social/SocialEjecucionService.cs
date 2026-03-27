@@ -19,14 +19,86 @@ namespace Social_Module.Services.Social
 
         public async Task<bool> GuardarDetalleAsync(DetalleEjecucionCreateDto dto)
         {
-
             using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            await conn.OpenAsync();
 
-            using var transaction = conn.BeginTransaction();
+            using var tx = conn.BeginTransaction();
 
-            string rutaAdjunto = dto.RutaAdjunto;
+            try
+            {
+                await conn.ExecuteAsync(
+                    @"DELETE FROM Social_DetalleEjecucion WHERE IdSolicitud = @IdSolicitud",
+                    new { dto.IdSolicitud },
+                    tx
+                );
 
-            if (dto.Adjunto != null)
+                await GuardarDetalleInternoAsync(
+                    dto,
+                    sinEjecucion: false,
+                    creadoPor: "legacy",
+                    conn,
+                    tx
+                );
+
+                tx.Commit();
+                return true;
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
+        }
+
+ 
+        public async Task<bool> GuardarDetalleBulkAsync(DetalleEjecucionBulkDto dto)
+        {
+            using var conn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            await conn.OpenAsync();
+
+            using var tx = conn.BeginTransaction();
+
+            try
+            {
+                await conn.ExecuteAsync(
+                    @"DELETE FROM Social_DetalleEjecucion WHERE IdSolicitud = @IdSolicitud",
+                    new { dto.IdSolicitud },
+                    tx
+                );
+
+                foreach (var detalle in dto.Detalles)
+                {
+                    detalle.IdSolicitud = dto.IdSolicitud;
+
+                    await GuardarDetalleInternoAsync(
+                        detalle,
+                        dto.SinEjecucion,
+                        dto.CreadoPor,
+                        conn,
+                        tx
+                    );
+                }
+
+                tx.Commit();
+                return true;
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
+        }
+
+        private async Task GuardarDetalleInternoAsync(
+            DetalleEjecucionCreateDto detalle,
+            bool sinEjecucion,
+            string creadoPor,
+            SqlConnection conn,
+            SqlTransaction tx)
+        {
+            string? rutaAdjunto = detalle.RutaAdjunto;
+
+            if (detalle.Adjunto != null)
             {
                 var basePath = _config["AppSettings:BaseUrl"];
 
@@ -35,99 +107,83 @@ namespace Social_Module.Services.Social
 
                 Directory.CreateDirectory(basePath);
 
-                var extension = Path.GetExtension(dto.Adjunto.FileName);
+                var extension = Path.GetExtension(detalle.Adjunto.FileName);
 
                 var ultimoConsecutivo = Directory
                     .GetFiles(basePath, "AdjuntoSocial-*")
                     .Select(f => Path.GetFileNameWithoutExtension(f))
-                    .Select(name => name.Split('-'))
-                    .Where(parts => parts.Length >= 2 && int.TryParse(parts[1], out _))
-                    .Select(parts => int.Parse(parts[1]))
+                    .Select(n => n.Split('-'))
+                    .Where(p => p.Length >= 2 && int.TryParse(p[1], out _))
+                    .Select(p => int.Parse(p[1]))
                     .DefaultIfEmpty(0)
                     .Max();
 
                 var siguiente = ultimoConsecutivo + 1;
-
                 var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmssfff");
 
                 var fileName = $"AdjuntoSocial-{siguiente}-{timestamp}{extension}";
                 var filePath = Path.Combine(basePath, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.Adjunto.CopyToAsync(stream);
-                }
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await detalle.Adjunto.CopyToAsync(stream);
 
                 rutaAdjunto = fileName;
             }
 
-            if (dto.Adjunto == null && string.IsNullOrWhiteSpace(dto.RutaAdjunto))
+            if (detalle.Adjunto == null && string.IsNullOrWhiteSpace(detalle.RutaAdjunto))
             {
                 rutaAdjunto = null;
             }
 
-            const string deleteQuery = @"
-                DELETE FROM Social_DetalleEjecucion
-                WHERE IdSolicitud = @IdSolicitud;
-            ";
-
-            await conn.ExecuteAsync(
-                deleteQuery,
-                new { dto.IdSolicitud },
-                transaction
+            await conn.ExecuteAsync(@"
+                INSERT INTO Social_DetalleEjecucion
+                (
+                    IdSolicitud,
+                    NIT,
+                    NombreEmpresa,
+                    LineaServicio,
+                    Otro,
+                    ValorEjecutado,
+                    FechaUltimaFactura,
+                    UltimoPagoRealizado,
+                    RutaAdjunto,
+                    SinEjecucion,
+                    CreadoPor,
+                    FechaRegistro
+                )
+                VALUES
+                (
+                    @IdSolicitud,
+                    @Nit,
+                    @NombreEmpresa,
+                    @LineaServicio,
+                    @Otro,
+                    @ValorEjecutado,
+                    @FechaUltimaFactura,
+                    @UltimoPagoRealizado,
+                    @RutaAdjunto,
+                    @SinEjecucion,
+                    @CreadoPor,
+                    GETDATE()
+                )",
+                new
+                {
+                    detalle.IdSolicitud,
+                    detalle.Nit,
+                    detalle.NombreEmpresa,
+                    detalle.LineaServicio,
+                    detalle.Otro,
+                    detalle.ValorEjecutado,
+                    detalle.FechaUltimaFactura,
+                    detalle.UltimoPagoRealizado,
+                    RutaAdjunto = rutaAdjunto,
+                    SinEjecucion = sinEjecucion,
+                    CreadoPor = creadoPor
+                },
+                tx
             );
-
-            var queryDetalle =
-                    @"
-                    INSERT INTO Social_DetalleEjecucion
-                    (
-                        IdSolicitud,
-                        NIT,
-                        NombreEmpresa,
-                        LineaServicio,
-                        Otro,
-                        ValorEjecutado,
-                        FechaUltimaFactura,
-                        UltimoPagoRealizado,
-                        RutaAdjunto,
-                        SinEjecucion,
-                        CreadoPor,
-                        FechaRegistro
-                    )
-                    VALUES
-                    (
-                        @IdSolicitud,
-                        @Nit,
-                        @NombreEmpresa,
-                        @LineaServicio,
-                        @Otro,
-                        @ValorEjecutado,
-                        @FechaUltimaFactura,
-                        @UltimoPagoRealizado,
-                        @RutaAdjunto,
-                        @SinEjecucion,
-                        @CreadoPor,
-                        GETDATE()
-                    );
-                    ";
-
-            await conn.ExecuteAsync(queryDetalle, new
-            {
-                dto.IdSolicitud,
-                dto.Nit,
-                dto.NombreEmpresa,
-                dto.LineaServicio,
-                dto.Otro,
-                dto.ValorEjecutado,
-                FechaUltimaFactura = dto.FechaUltimaFactura,
-                UltimoPagoRealizado = dto.UltimoPagoRealizado,
-                RutaAdjunto = rutaAdjunto,
-                dto.SinEjecucion,
-                dto.CreadoPor
-            });
-
-            return true;
         }
+
 
         public async Task<bool> ActualizarEstadoSolicitudAsync(int idSolicitud, string nuevoEstado)
         {

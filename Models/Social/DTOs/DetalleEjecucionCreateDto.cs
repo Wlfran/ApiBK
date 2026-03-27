@@ -9,13 +9,10 @@
         public string? LineaServicio { get; set; }
         public string? Otro { get; set; }
         public double ValorEjecutado { get; set; }
-        public bool SinEjecucion { get; set; }
-        public string CreadoPor { get; set; }
         public string? RutaAdjunto { get; set; }
         public IFormFile? Adjunto { get; set; }
         public DateTime? FechaUltimaFactura { get; set; }
         public DateTime? UltimoPagoRealizado { get; set; }
-
-
     }
+
 }
